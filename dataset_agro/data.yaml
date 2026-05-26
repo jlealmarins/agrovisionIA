@@ -1,0 +1,9 @@
+path: dataset_agro
+train: images/train
+val: images/val
+
+nc: 3
+names:
+  0: planta-saudavel
+  1: praga
+  2: doenca
