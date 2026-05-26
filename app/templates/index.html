@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>AgroVision AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; margin: 0; padding: 20px; }
+        h1 { color: #00cc66; }
+        .container { max-width: 1200px; margin: auto; }
+        .stream { text-align: center; margin-bottom: 30px; }
+        .stream img { width: 100%; max-width: 800px; border: 2px solid #00cc66; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #00cc66; color: #000; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #333; text-align: center; }
+        tr:hover { background: #2a2a2a; }
+        .badge { background: #00cc66; color: #000; padding: 3px 10px; border-radius: 12px; font-weight: bold; }
+        a { color: #00cc66; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🌱 AgroVision AI</h1>
+    <p>Detecção de objetos em tempo real com YOLO</p>
+
+    <div class="stream">
+        <h2>📷 Stream ao Vivo</h2>
+        <img id="stream" src="/frame" alt="Stream da câmera">
+    </div>
+
+    <h2>📋 Últimos Eventos Detectados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data/Hora</th>
+                <th>Objeto</th>
+                <th>Confiança</th>
+                <th>Imagem</th>
+            </tr>
+        </thead>
+        <tbody id="events-body">
+            {% for event in events %}
+            <tr>
+                <td>{{ event.id }}</td>
+                <td>{{ event.event_time }}</td>
+                <td><span class="badge">{{ event.label }}</span></td>
+                <td>{{ "%.0f%%"|format(event.confidence * 100) }}</td>
+                <td><a href="{{ event.image_path }}" target="_blank">Ver imagem</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">Nenhum evento registrado ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    setInterval(() => {
+        document.getElementById('stream').src = '/frame?t=' + Date.now();
+    }, 100);
+
+    setInterval(() => {
+        fetch('/events')
+            .then(r => r.json())
+            .then(events => {
+                const tbody = document.getElementById('events-body');
+                if (events.length === 0) return;
+                tbody.innerHTML = events.map(e => `
+                    <tr>
+                        <td>${e.id}</td>
+                        <td>${e.event_time}</td>
+                        <td><span class="badge">${e.label}</span></td>
+                        <td>${(e.confidence * 100).toFixed(0)}%</td>
+                        <td><a href="${e.image_path}" target="_blank">Ver imagem</a></td>
+                    </tr>
+                `).join('');
+            });
+    }, 5000);
+</script>
+</body>
+</html>
